@@ -5,11 +5,6 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-if [ -z "$1" ]
-  then
-    echo "This script requires your domain as it's first and only argument" 1>&2
-fi
-
 ssh-keygen -t rsa -b 2048 -C "bob" -f bob_key -N ''
 
 mkdir -p /home/bob/.ssh
@@ -21,11 +16,4 @@ chmod 0600 /home/bob/.ssh/authorized_keys
 echo "private key for sending builds:"
 cat bob_key
 
-/letsencrypt/letsencrypt-auto certonly --webroot -w /var/www/html -d $1
-
-sed 's/{{ server_name }}/$1/g' /nginx-pages/main > /etc/nginx/sites-enabled/main
-
-nginx -t
-
-systemctl restart nginx
-systemctl restart watch
+# TODO add a better explanation of what to do here

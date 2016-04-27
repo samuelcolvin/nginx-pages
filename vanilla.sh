@@ -34,11 +34,11 @@
     echo "adding using "bob" - the builder..."
     useradd -m bob
 
-    echo "generating unique primes for ssl, this might be very slow. Hold tight..."
-    openssl dhparam -out /nginx-pages/dhparams.pem 2048 1>/dev/null
-
     cp /nginx-pages/nginx-conf/redirect /etc/nginx/sites-enabled/default
     cp /nginx-pages/watch.service /etc/systemd/system/
+
+    echo "generating unique primes for ssl, this might be very slow. Hold tight..."
+    openssl dhparam -out /nginx-pages/dhparams.pem 2048
 
 SCRIPT
 }
