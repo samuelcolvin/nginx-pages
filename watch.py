@@ -62,9 +62,9 @@ def build():
     # we have to make sure the file isn't still being written
     while True:
         size = build_ref.stat().st_size
-        sleep(0.1)
+        sleep(1)
         if size == build_ref.stat().st_size:
-            # file size hasn't change for 0.1 second, must be stable
+            # file size hasn't change for 1 second, must be stable
             break
 
     logger.info('Extracting new site from: %s, size: %s', build_ref.name, file_size(size))
