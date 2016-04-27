@@ -5,8 +5,8 @@ After=network.target
 [Service]
 User=root
 Group=www-data
-WorkingDirectory=/root/
-ExecStart=python3.5 /root/watch.py
+WorkingDirectory=/nginx-pages/
+ExecStart=/nginx-pages/watch.py
 
 [Install]
 WantedBy=multi-user.target
