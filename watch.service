@@ -1,0 +1,12 @@
+[Unit]
+Description=file watcher
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/root/
+ExecStart=python3.5 /root/watch.py
+
+[Install]
+WantedBy=multi-user.target
