@@ -24,3 +24,8 @@ cat bob_key
 /letsencrypt/letsencrypt-auto certonly --webroot -w /var/www/html -d $1
 
 sed 's/{{ server_name }}/$1/g' /nginx-pages/main > /etc/nginx/sites-enabled/main
+
+nginx -t
+
+systemctl restart nginx
+systemctl restart watch
