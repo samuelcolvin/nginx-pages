@@ -35,7 +35,7 @@ def build():
         if d > newest_build[0]:
             newest_build = d, f
 
-    build_ref = newest_build[1]
+    build_ref = newest_build[1].absolute()
     if build_ref is None:
         return False
 
@@ -47,7 +47,7 @@ def build():
         if build_ref.name == build_ref_existing:
             return False
 
-    logger.info('Extracting new site from: %s', build_ref.name)
+    logger.info('deploying site %s, deleting old files and waiting for download to complete...', build_ref.name)
 
     for fp in UNPACK_DIR.iterdir():
         fp = fp.resolve()
@@ -58,9 +58,27 @@ def build():
 
     with build_ref_file.open('w') as f:
         f.write(build_ref.name)
+
+    # we have to make sure the file isn't still being written
+    while True:
+        size = build_ref.stat().st_size
+        sleep(0.1)
+        if size == build_ref.stat().st_size:
+            # file size hasn't change for 0.1 second, must be stable
+            break
+
+    logger.info('Extracting new site from: %s, size: %s', build_ref.name, file_size(size))
+
     with ZipFile(build_ref.absolute().path, 'r') as zf:
         zf.extractall(UNPACK_DIR.path)
     return True
+
+
+def file_size(num):
+    for unit in ['', 'K', 'M', 'G', 'T']:
+        if abs(num) < 1024.0:
+            return '%3.1f%sB' % (num, unit)
+        num /= 1024.0
 
 
 class EventHandler(PatternMatchingEventHandler):
