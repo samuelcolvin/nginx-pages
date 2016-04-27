@@ -24,8 +24,11 @@
     apt-get install -y nginx 1>/dev/null
     chown -R www-data:www-data /var/lib/nginx
 
-    echo "installing other requirements: git python3 libssl-dev libpcre3-dev..."
-    apt-get -y install git python3 libssl-dev libpcre3-dev 1>/dev/null
+    echo "installing other requirements: git python3 python3-pip libssl-dev libpcre3-dev..."
+    apt-get -y install git python3 python3-pip libssl-dev libpcre3-dev 1>/dev/null
+
+    echo "installing python requirements: watchdog dateutils..."
+    pip3 install watchdog dateutils
 
     echo "cloning nginx-pages and letsencrypt..."
     git clone https://github.com/samuelcolvin/nginx-pages /nginx-pages 1>/dev/null

@@ -9,6 +9,10 @@ from pathlib import Path
 from time import sleep, time
 from zipfile import ZipFile
 
+from dateutil.parser import parse
+from watchdog.observers import Observer
+from watchdog.events import RegexMatchingEventHandler
+
 logger = logging.getLogger('watch')
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
@@ -17,19 +21,17 @@ logger.addHandler(ch)
 SLEEP_DURATION = 5
 UNPACK_DIR = Path('/var/www/html')
 WATCH_DIR = Path('/home/bob/')
+FILE_REGEX = r'(\d{4}.*?)\.zip$'
 
 
 def build():
-    if not WATCH_DIR.exists():
-        logger.debug('watch directory %s does not exist', WATCH_DIR.path)
-        return False
     newest_build = datetime(2000, 1, 1), None
     for f in WATCH_DIR.iterdir():
-        date_m = re.search('(\d{4}.*?)\.zip$', f.name)
+        date_m = re.search(FILE_REGEX, f.name)
         if not date_m:
             logger.debug('no date found for %s', f.name)
             continue
-        d = datetime.strptime(date_m.groups()[0], '%Y-%m-%dT%H:%M:%S.%f')
+        d = parse(date_m.groups()[0])
         if d > newest_build[0]:
             logger.debug('%s with date %s is currently the newest site', f.name, d)
             newest_build = d, f
@@ -70,15 +72,33 @@ def build():
     return True
 
 
+class EventHandler(RegexMatchingEventHandler):
+    def __init__(self):
+        super().__init__(regexes=[FILE_REGEX])
+
+    def on_created(self, event):
+        if not event.is_directory:
+            logger.info('new file created: %s', event.src_path)
+            start = time()
+            if build():
+                logger.info('New site built in %0.2fs', time() - start)
+
+
 def main():
     logger.info('Initialising watch to check %s every %d seconds', WATCH_DIR.path, SLEEP_DURATION)
     if not WATCH_DIR.exists():
         raise RuntimeError('watch directory %s does not exist' % WATCH_DIR.path)
-    while True:
-        start = time()
-        if build():
-            logger.info('New site built in %0.2fs', time() - start)
-        sleep(SLEEP_DURATION)
+
+    observer = Observer()
+    event_handler = EventHandler()
+    observer.schedule(event_handler, WATCH_DIR.path, recursive=True)
+    observer.start()
+    try:
+        while True:
+            sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 if __name__ == '__main__':
     main()
