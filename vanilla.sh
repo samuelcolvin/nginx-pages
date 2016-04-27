@@ -8,11 +8,12 @@
 
     # run inside sudo
     sudo sh <<SCRIPT
+
     set -e
     echo "updating apt-get..."
     apt-get update 1>/dev/null
-    echo "installing software-properties-common git python3.5 libssl-dev libpcre3-dev..."
-    apt-get -y install software-properties-common git python3.5 libssl-dev libpcre3-dev 1>/dev/null
+    echo "installing software-properties-common git python3 libssl-dev libpcre3-dev..."
+    apt-get -y install software-properties-common git python3 libssl-dev libpcre3-dev 1>/dev/null
     add-apt-repository -y ppa:nginx/development
     apt-get update 1>/dev/null
     echo "installing the latest nginx..."
