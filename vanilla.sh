@@ -28,7 +28,7 @@
     apt-get -y install git python3 python3-pip libssl-dev libpcre3-dev 1>/dev/null
 
     echo "installing python requirements: watchdog dateutils..."
-    pip3 install watchdog dateutils
+    pip3 install pyinotify
 
     echo "cloning nginx-pages and letsencrypt..."
     git clone https://github.com/samuelcolvin/nginx-pages /nginx-pages 1>/dev/null
