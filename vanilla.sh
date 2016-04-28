@@ -11,6 +11,9 @@
 
     set -e
 
+    echo "updating apt-get..."
+    apt-get update 1>/dev/null
+
     echo "installing add-apt-repository..."
     apt-get -y install software-properties-common python-software-properties 1>/dev/null
 
