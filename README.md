@@ -48,3 +48,44 @@ directory of the zip file is correct. Here we assume you're using jekyll so the 
 
 Travis allows you to create [encrypted files](https://docs.travis-ci.com/user/encrypting-files/) which
 are not available in fork pull requests.
+
+This in turn allows you to encrypt the private key `bob_key` generated above. Once you have the
+[travis cli](https://github.com/travis-ci/travis.rb) installed and have download `bob_key` to the root git
+directory of the site you wish to deploy run:
+
+```shell
+# to create a string random password
+bob_key_pass="$(openssl rand -base64 32)"
+# print the password for your reference (you probably won't need to know it at any point)
+echo "bob_key_pass = $bob_key_pass"
+# encypt bob_key with the password and delete the original
+openssl aes-256-cbc -k $bob_key_pass -in bob_key -out bob_key.enc
+rm bob_key
+# add bob_key_pass as a secure variable to .travis.yml
+travis encrypt bob_key_pass=$bob_key_pass --add
+# download deploy.sh
+curl https://raw.githubusercontent.com/samuelcolvin/nginx-pages/master/deploy.sh > deploy.sh
+chmod a+x deploy.sh
+```
+
+This should have automatically edited your `.travis.yml` file, you'll need to edit it further to call
+`deploy.sh`. In the end the file should look something like:
+
+```yml
+language: ruby
+rvm:
+- 2.1
+script:
+- bundle exec jekyll build
+- bundle exec htmlproofer _site
+env:
+  global:
+  - NOKOGIRI_USE_SYSTEM_LIBRARIES=true
+  - domain: <your domain name>
+  - secure: <your secure variable for bob_key_pass>
+after_success:
+  - ./deploy.sh
+```
+
+(this is an example with site build using jekyll, see https://github.com/tutorcruncher/tutorcruncher.com
+for a full example)
