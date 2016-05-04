@@ -89,3 +89,26 @@ after_success:
 
 (this is an example with site build using jekyll, see https://github.com/tutorcruncher/tutorcruncher.com
 for a full example)
+
+
+### To debug the watch service
+
+(Really just a note for me, with luck you can ignore this)
+
+A few useful commands when debugging the watch service (or indeed any other service):
+
+```shell
+# a summary of the current status of watch
+service watch status
+# to restart watch (will rebuild the site)
+service watch restart
+
+# journalctl live
+journalctl -f
+# journalctl live filtered to just this watch.service
+journalctl -f _SYSTEMD_UNIT=watch.service
+# journalctl live showing only error level logs
+journalctl -f -p err
+```
+
+`journalctl` can also show important information about `nginx`  and `sshd`.
