@@ -14,7 +14,7 @@ if [ -z "$domain" ]; then
 fi
 echo "domain: $domain ✓"
 
-echo "zipping _site to site.zio..."
+echo "zipping _site to site.zip..."
 (cd _site/ && zip -r - .) > site.zip 2>/dev/null
 
 echo "decrypting ssh key..."
