@@ -1,14 +1,50 @@
 # nginx-pages
 
-Github pages inspired static site server using [nginx](https://www.nginx.com/resources/wiki/),
-and scp. It defaults to https using [letsencrypt](https://letsencrypt.org/) to grant certificates.
+## What
 
-The build script installs latest nginx to support http2.
+Github pages inspired static site server which can run on your own server and deploy automatically using CI.
+
+## Why
+
+Static sites builders like jekyll are very cool and deploying them using github pages is very convenient,
+however HTTPS is becoming more and more important for SEO.
+
+HTTPS isn't the only win you get by moving beyond github pages; there are a myriad of other reasons
+why you might want the flexibility of deploying your site on a server you control.
+
+We want the easy of updating sites with github pages while deploying to a server under our command.
+
+The advent of very cheap, easy to use virtual servers and free CI means you can deploy on your
+own server for just a few 4/£/€ a month.
+
+## How
+
+nginx-pages uses:
+
+* [nginx](https://www.nginx.com/resources/wiki/) to serve static files
+* [letsencrypt](https://letsencrypt.org/) to generate signed SSL certificates easily and for free.
+* [travis](https://travis-ci.org/) to build the site, check it's good and send the freshly built site to your server. Other CI services and manual deploy should work fine too.
+* [jekyll](https://jekyllrb.com/) to build your site. [Other](https://www.staticgen.com/) static site generates should work fine too, but the example below assumes jekyll.
+* [scp](https://en.wikipedia.org/wiki/Secure_copy) to transfer the built site to your server, travis's encrypted environment variables mean this works even with public repos, see below.
+* [http2](https://en.wikipedia.org/wiki/HTTP/2) the `vanilla.sh` install script installs the latest version of nginx which supports the much improved new version of http.
+* [scaleway](https://www.scaleway.com/) are a great option as their virtual server at €2.99/month are very cheap. Note: nginx-pages doesn't work with their "C1" arm based bare metal servers as their hardware doesn't support ipv6 which nginx expects.
+
+The basic work flow of setting up nginx-pages is very simple:
+
+1. install requirements on a fresh Ubuntu virtual server
+1. Use the script below to create a new user with limited permissions who can scp new sites to your server
+1. Use the script below to setup nginx with the right sites.
+1. scp a `site.zip` site to the server and it should be automatically deployed.
 
 ### Install
 
+This has been tested on a fresh install of Ubuntu 16.04 LTS.
+
     sudo apt-get update && sudo apt-get install wget
     wget -O- https://raw.githubusercontent.com/samuelcolvin/nginx-pages/master/vanilla.sh | sh
+
+In theory a machine image could be taken at this point and reused on different servers,
+but I haven't got round to that yet.
 
 ### Setup
 
@@ -33,6 +69,9 @@ This will use letsencrypt to create ssh keys and setup nginx to use them.
 The watch service should now be live (you can check with `systemctl status watch`) and nginx running.
 
 If you write to `/home/bob/site.zip` the contents should be extracted and then served by nginx.
+
+Every site build adds a `build.txt` file which gives some details on the most recent build.
+See [https://tutorcruncher.com/build.txt](https://tutorcruncher.com/build.txt) for an example.
 
 ### Deploying Builds
 
@@ -90,6 +129,20 @@ after_success:
 (this is an example with site build using jekyll, see https://github.com/tutorcruncher/tutorcruncher.com
 for a full example)
 
+### Modifying the nginx site conf
+
+You might want to modify the `/etc/nginx/sites-enabled/main` eg. to tell nginx to your your own `404.html`.
+
+```
+    ...
+    error_page 404 /404.html;
+
+     location = /404.html {
+        root /var/www/html;
+        internal;
+    }
+}
+```
 
 ### To debug the watch service
 
