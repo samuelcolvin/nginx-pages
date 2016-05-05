@@ -4,37 +4,49 @@
 
 Github pages inspired static site server which can run on your own server and deploy automatically using CI.
 
+An example: https://tutorcruncher.com is deployed using nginx pages, you can view
+the site's repo [on github](https://github.com/tutorcruncher/tutorcruncher.com).
+
 ## Why
 
-Static sites builders like jekyll are very cool and deploying them using github pages is very convenient,
+Static sites builders like jekyll are very cool and deploying them using github pages is extremely convenient,
 however HTTPS is becoming more and more important for SEO.
 
 HTTPS isn't the only win you get by moving beyond github pages; there are a myriad of other reasons
-why you might want the flexibility of deploying your site on a server you control.
+why you might want the flexibility of deploying your site on a server you control. (The chances are, if you care
+about those reasons you can work them out for yourself, so I'll spare you the rant.)
 
 We want the easy of updating sites with github pages while deploying to a server under our command.
 
 The advent of very cheap, easy to use virtual servers and free CI means you can deploy on your
-own server for just a few 4/£/€ a month.
+own server for just a few $/£/€ a month.
 
 ## How
 
 nginx-pages uses:
 
-* [nginx](https://www.nginx.com/resources/wiki/) to serve static files
+* [nginx](https://www.nginx.com/resources/wiki/) to serve the site.
 * [letsencrypt](https://letsencrypt.org/) to generate signed SSL certificates easily and for free.
-* [travis](https://travis-ci.org/) to build the site, check it's good and send the freshly built site to your server. Other CI services and manual deploy should work fine too.
-* [jekyll](https://jekyllrb.com/) to build your site. [Other](https://www.staticgen.com/) static site generates should work fine too, but the example below assumes jekyll.
-* [scp](https://en.wikipedia.org/wiki/Secure_copy) to transfer the built site to your server, travis's encrypted environment variables mean this works even with public repos, see below.
-* [http2](https://en.wikipedia.org/wiki/HTTP/2) the `vanilla.sh` install script installs the latest version of nginx which supports the much improved new version of http.
-* [scaleway](https://www.scaleway.com/) are a great option as their virtual server at €2.99/month are very cheap. Note: nginx-pages doesn't work with their "C1" arm based bare metal servers as their hardware doesn't support ipv6 which nginx expects.
+* [travis](https://travis-ci.org/) to build the site, check it's good and send the freshly built site to your server.
+Other CI services and manual deploy should work fine too.
+* [jekyll](https://jekyllrb.com/) to build your site. [Other static site generators](https://www.staticgen.com/)
+should work fine too, but the example below assumes jekyll.
+* [scp](https://en.wikipedia.org/wiki/Secure_copy) to transfer the built site to your server, travis's encrypted
+environment variables mean this works even with public repos, see below.
+* [http2](https://en.wikipedia.org/wiki/HTTP/2) the `vanilla.sh` install script installs the latest version
+of nginx which supports the much improved new version of http.
+The `http_setup.sh` script configures nginx to serve your site using http2.
+* [scaleway](https://www.scaleway.com/) are a great option as their virtual server at €2.99/month are very cheap.
+Obviously any other IaaS provider should work just as well.
+
+****
 
 The basic work flow of setting up nginx-pages is very simple:
 
-1. install requirements on a fresh Ubuntu virtual server
-1. Use the script below to create a new user with limited permissions who can scp new sites to your server
-1. Use the script below to setup nginx with the right sites.
-1. scp a `site.zip` site to the server and it should be automatically deployed.
+1. Use `vanilla.sh` to install requirements on a fresh Ubuntu virtual server
+1. Use `scp_setup.sh` to setup a new user with limited permissions who can scp new sites to your server
+1. Use `http_setup.sh` to setup nginx with the right sites.
+1. scp a zip file containing staic file for your site to the server and it will be automatically deployed.
 
 ### Install
 
@@ -46,6 +58,9 @@ This has been tested on a fresh install of Ubuntu 16.04 LTS.
 In theory a machine image could be taken at this point and reused on different servers,
 but I haven't got round to that yet.
 
+Note: nginx-pages doesn't work with scaleway's "C1" ARM based bare metal servers as their hardware doesn't support
+ipv6 which nginx expects, see [this](https://github.com/scaleway/kernel-tools/issues/150) issue.
+
 ### Setup
 
 You now need to setup scp and nginx, to setup scp:
@@ -54,7 +69,7 @@ You now need to setup scp and nginx, to setup scp:
 
 Which should create an ssh key for the user "bob" and print it to the terminal, the file itself will
 be available in working directory as `bob_key`. You'll use this key later to transfer new sites to the server.
-You'll want to copy & paste it or scp it back to your machine.
+You'll want to copy & paste it or scp it back home.
 
 Setup nginx (the http server):
 
@@ -70,14 +85,15 @@ The watch service should now be live (you can check with `systemctl status watch
 
 If you write to `/home/bob/site.zip` the contents should be extracted and then served by nginx.
 
-Every site build adds a `build.txt` file which gives some details on the most recent build.
-See [https://tutorcruncher.com/build.txt](https://tutorcruncher.com/build.txt) for an example.
+Every site build adds a `/build.txt` file to your site which gives some details on the most recent build.
+See https://tutorcruncher.com/build.txt for an example.
 
-### Deploying Builds
+### Deploying your site
 
 You should now be able to deploy to your server using scp, note the zip command to make sure the root
 directory of the zip file is correct. Here we assume you're using jekyll so the built site is in `_sites`.
 
+    #> jekyll build
     #> (cd _site/ && zip -r - .) > site.zip
     #> scp -i bob_key site.zip bob@www.example.com:site.zip
 
@@ -93,7 +109,7 @@ This in turn allows you to encrypt the private key `bob_key` generated above. On
 directory of the site you wish to deploy run:
 
 ```shell
-# to create a string random password
+# to create a random password
 bob_key_pass="$(openssl rand -base64 32)"
 # print the password for your reference (you probably won't need to know it at any point)
 echo "bob_key_pass = $bob_key_pass"
@@ -127,11 +143,11 @@ after_success:
 ```
 
 (this is an example with site build using jekyll, see https://github.com/tutorcruncher/tutorcruncher.com
-for a full example)
+for a full example including the `Gemfile` which the build commands require.)
 
 ### Modifying the nginx site conf
 
-You might want to modify the `/etc/nginx/sites-enabled/main` eg. to tell nginx to your your own `404.html`.
+You might want to modify the `/etc/nginx/sites-enabled/main` eg. to tell nginx to use your own `404.html`.
 
 ```
     ...
@@ -143,6 +159,8 @@ You might want to modify the `/etc/nginx/sites-enabled/main` eg. to tell nginx t
     }
 }
 ```
+
+(any changes to `/etc/nginx/sites-enabled/main` will be overwritten if you call `http_setup.sh` again.)
 
 ### To debug the watch service
 
