@@ -10,7 +10,7 @@ if [ -z "$1" ]
     echo "This script requires your domain as it's first and only argument" 1>&2
 fi
 
-/letsencrypt/letsencrypt-auto certonly --webroot -w /var/www/html -d $1
+letsencrypt --webroot -w /var/www/html -d $1
 
 sed 's/{{ server_name }}/'"$1"'/g' /nginx-pages/nginx-conf/main > /etc/nginx/sites-enabled/main
 

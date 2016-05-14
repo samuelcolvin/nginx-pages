@@ -27,15 +27,14 @@
     apt-get install -y nginx 1>/dev/null
     chown -R www-data:www-data /var/lib/nginx
 
-    echo "installing other requirements: git python3 python3-pip libssl-dev libpcre3-dev..."
-    apt-get -y install git python3 python3-pip libssl-dev libpcre3-dev 1>/dev/null
+    echo "installing other requirements: git python3 python3-pip libssl-dev libpcre3-dev letsencrypt..."
+    apt-get -y install git python3 python3-pip libssl-dev libpcre3-dev letsencrypt 1>/dev/null
 
     echo "installing python requirements: pyinotify..."
     pip3 install pyinotify
 
-    echo "cloning nginx-pages and letsencrypt..."
+    echo "cloning nginx-pages..."
     git clone https://github.com/samuelcolvin/nginx-pages /nginx-pages 1>/dev/null
-    git clone https://github.com/letsencrypt/letsencrypt /letsencrypt 1>/dev/null
 
     echo "adding user 'bob'..."
     useradd -m bob
