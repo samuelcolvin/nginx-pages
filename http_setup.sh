@@ -12,7 +12,8 @@ fi
 
 letsencrypt --webroot -w /var/www/html -d $1
 
-sed 's/{{ server_name }}/'"$1"'/g' /nginx-pages/nginx-conf/main > /etc/nginx/sites-enabled/main
+sed 's/{{ server_name }}/'"$1"'/g' /nginx-pages/nginx-conf/main > /etc/nginx/sites-available/main
+ln -s /etc/nginx/sites-available/main /etc/nginx/sites-enabled/
 
 nginx -t
 
