@@ -45,7 +45,7 @@
     ln -s /etc/nginx/sites-available/redirect /etc/nginx/sites-enabled/
 
     echo "adding watch.service to systemd and enabling it..."
-    cp /nginx-pages/watch.service /etc/systemd/system/
+    cp /nginx-pages/watch.service /etc/systemd/user/
     systemctl enable watch
 
     echo "generating unique primes for ssl, this might be very slow. Hold tight..."
