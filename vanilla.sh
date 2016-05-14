@@ -24,11 +24,11 @@
     apt-get update 1>/dev/null
 
     echo "installing the latest nginx..."
-    apt-get install -y nginx 1>/dev/null
+    apt-get -y install nginx 1>/dev/null
     chown -R www-data:www-data /var/lib/nginx
 
     echo "installing other requirements: git python3 python3-pip libssl-dev libpcre3-dev letsencrypt..."
-    apt-get install -y git python3 python3-pip libssl-dev libpcre3-dev letsencrypt 1>/dev/null
+    apt-get -y install git python3 python3-pip libssl-dev libpcre3-dev letsencrypt 1>/dev/null
 
     echo "installing python requirements: pyinotify..."
     pip3 install pyinotify
@@ -45,7 +45,7 @@
     ln -s /etc/nginx/sites-available/redirect /etc/nginx/sites-enabled/
 
     echo "adding watch.service to systemd and enabling it..."
-    cp /nginx-pages/watch.service /etc/systemd/user/
+    cp /nginx-pages/watch.service /etc/systemd/system/
     systemctl enable watch
 
     echo "generating unique primes for ssl, this might be very slow. Hold tight..."
